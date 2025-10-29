@@ -50,14 +50,31 @@ Corda 5 requires **Java 17**.
 brew install openjdk@17
 ```
 
-Set environment variables:
+#### 🧩 Set up Environment Variables
+
+**For Apple Silicon (M1/M2/M3):**
 ```bash
-echo 'export PATH="/usr/local/opt/openjdk@17/bin:$PATH"' >> ~/.zshrc
-echo 'export JAVA_HOME=$(/usr/libexec/java_home -v17)' >> ~/.zshrc
+echo 'export PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH"' >> ~/.zshrc
+echo 'export CPPFLAGS="-I/opt/homebrew/opt/openjdk@17/include"' >> ~/.zshrc
+echo 'export JAVA_HOME="/opt/homebrew/opt/openjdk@17"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
-Verify:
+**For Intel Macs:**
+```bash
+echo 'export PATH="/usr/local/opt/openjdk@17/bin:$PATH"' >> ~/.zshrc
+echo 'export CPPFLAGS="-I/usr/local/opt/openjdk@17/include"' >> ~/.zshrc
+echo 'export JAVA_HOME="/usr/local/opt/openjdk@17"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+#### 🧩 Fix Java Runtime Detection on macOS
+macOS may not detect Homebrew JDKs automatically. Link it manually:
+```bash
+sudo ln -sfn $(brew --prefix openjdk@17)/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-17.jdk
+```
+
+#### Verify Java:
 ```bash
 java -version
 # Expected output: openjdk 17.x
@@ -212,6 +229,7 @@ Deploy via CLI or Kubernetes as per your setup.
 - Ensure Docker is running before starting the network.
 - Use Java 17 strictly for Corda 5.
 - PostgreSQL must be running as a background service.
+- Apple Silicon users must create the JDK symlink for Java detection.
 
 ---
 
