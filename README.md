@@ -98,30 +98,30 @@ git --version
 
 ## 🛠️ 8. Install Corda CLI (Manual Method)
 
-> ⚠️ The Homebrew tap for Corda CLI is deprecated.  
-> This method manually sets up the CLI for macOS.
+1. **Obtain the Corda CLI installer compatible with your version of Corda**. Download one of the following:
 
-### Step 1: Create CLI folder
+   - [corda-cli-installer-5.2.0.0.zip](https://github.com/corda/corda-runtime-os/releases/tag/release-5.2.0.0) from the Corda 5.2 Release Page  
+   - [corda-cli-installer-5.2.1.0.zip](https://github.com/corda/corda-runtime-os/releases/tag/release-5.2.1.0) from the Corda 5.2.1 Release Page
+
+2. Create CLI folder:
 
 ```bash
 mkdir -p ~/.corda/cli/bin
 ```
 
-### Step 2: Copy the CLI JAR
-
-Assuming `corda-cli.jar` is in your current folder:
+3. Copy the CLI JAR:
 
 ```bash
 cp corda-cli.jar ~/.corda/cli/bin/corda-cli.jar
 ```
 
-### Step 3: Create a launcher script
+4. Create a launcher script:
 
 ```bash
 nano ~/.corda/cli/bin/corda-cli
 ```
 
-Paste the following:
+Paste:
 
 ```bash
 #!/bin/bash
@@ -130,26 +130,27 @@ java -jar "$HOME/.corda/cli/bin/corda-cli.jar" "$@"
 
 Save and exit (`Ctrl+O`, `Enter`, `Ctrl+X`).
 
-### Step 4: Make it executable
+5. Make it executable:
 
 ```bash
 chmod +x ~/.corda/cli/bin/corda-cli
 ```
 
-### Step 5: Add CLI to PATH
+6. Add CLI to PATH:
 
 ```bash
 echo 'export PATH="$HOME/.corda/cli/bin:$PATH"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
-### Step 6: Verify CLI
+7. Verify:
 
 ```bash
 corda-cli --version
 ```
 
 ✅ Expected:
+
 ```
 Corda CLI version 5.2.0.0
 ```
@@ -215,7 +216,7 @@ chmod -R 755 ~/.corda/cli
 | Docker Compose | Latest | Included in Docker Desktop |
 | Gradle | Latest | Homebrew |
 | Git | Latest | Homebrew |
-| Corda CLI | 5.2.0 | Manual installer (`corda-cli.jar`) |
+| Corda CLI | 5.2.x | Manual installer (`corda-cli.jar`) |
 | Kotlin | 1.9+ | Homebrew |
 | PostgreSQL | 15+ | Homebrew |
 
@@ -231,4 +232,3 @@ corda-cli preinstall
 corda-cli vnode
 corda-cli mgm
 ```
-
