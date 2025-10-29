@@ -1,58 +1,30 @@
-# 🪙 Corda 5 Installation Guide (macOS - 2025)
+# 🪙 R3 Corda 5.2+ Installation Guide (macOS)
 
-This guide explains how to install **R3 Corda 5** and all required dependencies on **macOS (Intel or Apple Silicon)** with the latest stable versions as of **October 2025**.
-
----
-
-## 🧠 Overview
-
-Corda 5 is a **modern, cloud-native blockchain platform** built with:
-- Java 17+
-- Docker / Kubernetes
-- Corda CLI
-- Gradle 8+
-- Kotlin 1.9+
-- PostgreSQL
+This guide sets up **R3 Corda 5.2+** on macOS with all required dependencies.  
+It includes a **manual method to install the Corda CLI**, which works even when the official installer script fails.
 
 ---
 
-## ⚙️ System Requirements
+## ⚙️ 1. Install Homebrew
 
-| Component | Recommended |
-|------------|-------------|
-| macOS | 12 (Monterey) or newer |
-| CPU | Apple Silicon (M1/M2/M3) or Intel |
-| RAM | 16 GB+ |
-| Storage | 20 GB+ free space |
-| Internet | Required for image pulls |
-
----
-
-## 🧩 Step 1. Install Core Dependencies
-
-### 🟡 1. Homebrew
-If not installed:
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
-
-Update Homebrew:
-```bash
 brew update
+brew --version
 ```
 
 ---
 
-### 🟢 2. Java (JDK 17)
-Corda 5 requires **Java 17**.
+## ☕ 2. Install OpenJDK 17
 
 ```bash
 brew install openjdk@17
 ```
 
-#### 🧩 Set up Environment Variables
+---
 
-**For Apple Silicon (M1/M2/M3):**
+## 🧩 3. Configure Java Environment Variables (Apple Silicon)
+
 ```bash
 echo 'export PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH"' >> ~/.zshrc
 echo 'export CPPFLAGS="-I/opt/homebrew/opt/openjdk@17/include"' >> ~/.zshrc
@@ -61,6 +33,7 @@ source ~/.zshrc
 ```
 
 **For Intel Macs:**
+
 ```bash
 echo 'export PATH="/usr/local/opt/openjdk@17/bin:$PATH"' >> ~/.zshrc
 echo 'export CPPFLAGS="-I/usr/local/opt/openjdk@17/include"' >> ~/.zshrc
@@ -68,29 +41,45 @@ echo 'export JAVA_HOME="/usr/local/opt/openjdk@17"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
-#### 🧩 Fix Java Runtime Detection on macOS
-macOS may not detect Homebrew JDKs automatically. Link it manually:
+---
+
+## 🔗 4. Link JDK for macOS System Recognition
+
 ```bash
 sudo ln -sfn $(brew --prefix openjdk@17)/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-17.jdk
 ```
 
-#### Verify Java:
+Verify Java:
 ```bash
 java -version
-# Expected output: openjdk 17.x
+```
+
+✅ Expected:
+```
+openjdk version "17.0.17" ...
+OpenJDK Runtime Environment (Homebrew)
+OpenJDK 64-Bit Server VM
 ```
 
 ---
 
-### 🟢 3. Kotlin (1.9+)
+## 🐳 5. Install Docker Desktop
+
 ```bash
-brew install kotlin
-kotlin -version
+brew install --cask docker
+open /Applications/Docker.app
+```
+
+Verify:
+```bash
+docker --version
+docker-compose --version
 ```
 
 ---
 
-### 🟢 4. Gradle (8+)
+## 🧱 6. Install Gradle
+
 ```bash
 brew install gradle
 gradle -v
@@ -98,7 +87,8 @@ gradle -v
 
 ---
 
-### 🟢 5. Git
+## 🧰 7. Install Git
+
 ```bash
 brew install git
 git --version
@@ -106,47 +96,76 @@ git --version
 
 ---
 
-### 🟢 6. Docker Desktop
-Corda 5 uses containerized services.
+## 🛠️ 8. Install Corda CLI (Manual Method)
+
+> ⚠️ The Homebrew tap for Corda CLI is deprecated.  
+> This method manually sets up the CLI for macOS.
+
+### Step 1: Create CLI folder
 
 ```bash
-brew install --cask docker
+mkdir -p ~/.corda/cli/bin
 ```
 
-After installation:
-- Open **Docker Desktop** manually once.
-- Ensure it’s running:
-  ```bash
-  docker version
-  ```
+### Step 2: Copy the CLI JAR
+
+Assuming `corda-cli.jar` is in your current folder:
+
+```bash
+cp corda-cli.jar ~/.corda/cli/bin/corda-cli.jar
+```
+
+### Step 3: Create a launcher script
+
+```bash
+nano ~/.corda/cli/bin/corda-cli
+```
+
+Paste the following:
+
+```bash
+#!/bin/bash
+java -jar "$HOME/.corda/cli/bin/corda-cli.jar" "$@"
+```
+
+Save and exit (`Ctrl+O`, `Enter`, `Ctrl+X`).
+
+### Step 4: Make it executable
+
+```bash
+chmod +x ~/.corda/cli/bin/corda-cli
+```
+
+### Step 5: Add CLI to PATH
+
+```bash
+echo 'export PATH="$HOME/.corda/cli/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+### Step 6: Verify CLI
+
+```bash
+corda-cli --version
+```
+
+✅ Expected:
+```
+Corda CLI version 5.2.0.0
+```
 
 ---
 
-### 🟢 7. Kubernetes
-If using Docker Desktop, enable **Kubernetes** under:
-> **Docker Desktop → Settings → Kubernetes → Enable Kubernetes**
+## 🐘 9. Optional: Kotlin (for CorDapp development)
 
-Otherwise install Minikube:
 ```bash
-brew install minikube
-minikube start
+brew install kotlin
+kotlin -version
 ```
 
 ---
 
-### 🟢 8. Corda CLI (latest)
-Corda 5 comes with a CLI for deployment and network control.
-
-```bash
-brew tap corda/corda-cli
-brew install corda-cli
-corda-cli version
-```
-
----
-
-### 🟢 9. PostgreSQL (Database)
-Corda 5 nodes use PostgreSQL for persistence.
+## 🐘 10. Optional: PostgreSQL (for node database)
 
 ```bash
 brew install postgresql
@@ -155,97 +174,61 @@ brew services start postgresql
 
 ---
 
-### 🟢 10. IntelliJ IDEA (Optional)
-Recommended IDE for CorDapp development:
+## 🧾 11. Verify Full Setup
+
 ```bash
-brew install --cask intellij-idea
-```
-
----
-
-## 🧰 Step 2. Verify Setup
-
-Run these commands:
-```bash
+brew --version
 java -version
-kotlin -version
-gradle -version
-docker version
-kubectl version --client
-corda-cli version
+docker --version
+docker-compose --version
+gradle -v
+git --version
+corda-cli --version
 ```
 
-All should return valid versions.
+All should print valid versions.
 
 ---
 
-## 🚀 Step 3. Run a Local Corda 5 Network
+## ⚡ Notes & Troubleshooting
 
-Create and start a test network:
+- **Log folder errors**: If you see `Could not create directory /Users/krushna/.corda/cli/logs`, run:
+
 ```bash
-corda-cli network create --name test-network
-corda-cli network start test-network
+mkdir -p ~/.corda/cli/logs
+chmod -R 755 ~/.corda/cli
 ```
 
-This spins up a local Corda 5 network using Docker.
+- **Do NOT use `sudo` with install.sh** — it may install CLI under `/var/root/` instead of your home folder.  
+
+- **Always check PATH**: `echo $PATH` should include `$HOME/.corda/cli/bin`.
 
 ---
 
-## 🧱 Step 4. (Optional) Build a Sample CorDapp
+## ✅ Summary of Dependencies
 
-Clone samples:
+| Tool | Version | Installation |
+|------|---------|--------------|
+| Homebrew | Latest | Official script |
+| OpenJDK | 17 | Homebrew |
+| Docker | Latest | Homebrew Cask |
+| Docker Compose | Latest | Included in Docker Desktop |
+| Gradle | Latest | Homebrew |
+| Git | Latest | Homebrew |
+| Corda CLI | 5.2.0 | Manual installer (`corda-cli.jar`) |
+| Kotlin | 1.9+ | Homebrew |
+| PostgreSQL | 15+ | Homebrew |
+
+---
+
+## 🚀 Ready to Use
+
+Your macOS is now fully set up for **Corda 5.2+ development** and testing.  
+You can start creating and managing virtual nodes with:
+
 ```bash
-git clone https://github.com/corda/corda5-samples.git
-cd corda5-samples/basic-cordapp
+corda-cli preinstall
+corda-cli vnode
+corda-cli mgm
 ```
 
-Build:
-```bash
-./gradlew build
-```
-
-Deploy via CLI or Kubernetes as per your setup.
-
----
-
-## 📦 Summary of Dependencies (Latest 2025 Versions)
-
-| Dependency | Recommended Version | Install Command |
-|-------------|--------------------|-----------------|
-| JDK | 17 | `brew install openjdk@17` |
-| Kotlin | 1.9+ | `brew install kotlin` |
-| Gradle | 8+ | `brew install gradle` |
-| Git | latest | `brew install git` |
-| Docker | latest | `brew install --cask docker` |
-| Kubernetes | latest | `brew install minikube` *(optional)* |
-| PostgreSQL | 15+ | `brew install postgresql` |
-| Corda CLI | latest | `brew tap corda/corda-cli && brew install corda-cli` |
-| IntelliJ IDEA | latest | `brew install --cask intellij-idea` |
-
----
-
-## 🧾 Notes
-
-- Ensure Docker is running before starting the network.
-- Use Java 17 strictly for Corda 5.
-- PostgreSQL must be running as a background service.
-- Apple Silicon users must create the JDK symlink for Java detection.
-
----
-
-## 🧰 Optional: Automated Installer Script
-
-You can automate all steps with one command:
-```bash
-curl -fsSL https://example.com/setup_corda5_mac.sh | bash
-```
-*(Replace with your script URL if hosting it yourself)*
-
----
-
-## ✅ Done!
-
-Your macOS is now **Corda 5 ready** 🎉  
-You can start developing or deploying CorDapps immediately.
-
----
