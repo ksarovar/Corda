@@ -1,164 +1,150 @@
-# 🧭 Corda 5.2+ CorDapp Template – Clone, Build, Deploy & Run (macOS)
+# 🧭 Corda 5.2+ Kotlin CorDapp – Guide to Run Corda Nodes Locally (macOS)
 
-This guide walks you through **cloning a CorDapp template**, building it, deploying virtual nodes, installing the CorDapp, running flows, and validating results on **macOS** using **Corda 5.2+**.
+This document walks you through **cloning, building, deploying, running, and testing** your CorDapp locally on **macOS** using **Corda 5.2+**.
 
 ---
 
-## 1. Clone a CorDapp Template
+## 1️⃣ Prerequisites
+
+Before starting, ensure you have the following installed:
+
+- **Java 17** – Required for Corda 5.2
 
 ```bash
-git clone https://github.com/corda/some-cordapp-template.git
-cd some-cordapp-template
+java -version
 ```
 
-The template usually contains:
-
-- `states/` – example states  
-- `contracts/` – rules for state validity  
-- `workflows/` – flows to automate actions  
-
-> **Important:** Ensure the template is compatible with Corda 5.2.x.
+- **Corda CLI (v5.2)** – Download from [Corda CLI](https://github.com/corda/corda-runtime-os/releases)
+- **Docker Desktop** – Needed for Docker-based node deployment
+- **IntelliJ IDEA (optional)** – For code completion, debugging, and Gradle tasks
 
 ---
 
-## 2. Build & Package the CorDapp
+## 2️⃣ Clone the CorDapp Template
+
+Open a terminal and run:
+
+```bash
+git clone https://github.com/corda/corDapp-template-kotlin.git
+cd cordapp-template-kotlin
+git checkout release-V5.2
+```
+
+This template provides:
+
+- Pre-configured Kotlin CorDapp project  
+- Gradle build setup  
+- Example flows (`com.template.flows`)  
+- Example state (`TemplateState`)  
+- Contract (`TemplateContract`)  
+
+---
+
+## 3️⃣ Build the Project
+
+From the project root:
 
 ```bash
 ./gradlew clean build
 ```
 
-After a successful build, you should see a `.cpi` file:
+- Compiles contracts and workflows  
+- Generates `.jar` files for the nodes  
+
+---
+
+## 4️⃣ Deploy Nodes
+
+Corda 5.2 uses the Gradle `deployNodes` task for node deployment:
 
 ```bash
-build/libs/my-cordapp-1.0.cpi
+./gradlew deployNodes
 ```
 
-### Troubleshooting Build Errors
+Creates node directories under:
 
-- Open `build.gradle.kts`  
-- Confirm `corda-api` version is set to 5.2.x  
-
-Example:
-
-```kotlin
-cordaVersion = "5.2.0"
 ```
+build/nodes/
+├── Notary/
+├── PartyA/
+└── PartyB/
+```
+
+Each node will contain:
+
+- `corda.jar`  
+- `node.conf`  
+- `log/` folder  
+- `persistence/` folder for vault database  
 
 ---
 
-## 3. Deploy Virtual Nodes & Install the CorDapp
-
-### Prepare the Environment
+## 5️⃣ Start Nodes
 
 ```bash
-corda-cli preinstall
+cd build/nodes
+./runnodes
 ```
 
-### Create Virtual Nodes
+- Opens terminal windows for each node: PartyA, PartyB, Notary  
+- Each node logs its startup and RPC endpoints  
+
+---
+
+## 6️⃣ Interacting With the CorDapp
+
+### 6.1 Using Corda CLI (RPC)
+
+**List available flows:**
 
 ```bash
-corda-cli vnode create --name PartyA
-corda-cli vnode create --name PartyB
+flow list
 ```
 
-### Install the CorDapp CPI on Each Node
+Example output:
+
+```
+com.template.flows.Initiator
+net.corda.core.flows.ContractUpgradeFlow$Authorise
+net.corda.core.flows.ContractUpgradeFlow$Deauthorise
+net.corda.core.flows.ContractUpgradeFlow$Initiate
+```
+
+**Start a flow:**
 
 ```bash
-corda-cli bundle install --cpi build/libs/my-cordapp-1.0.cpi --vnode PartyA
-corda-cli bundle install --cpi build/libs/my-cordapp-1.0.cpi --vnode PartyB
+flow start com.template.flows.Initiator receiver: "O=PartyB,L=New York,C=US"
 ```
 
-### Start the Nodes
+- This triggers the Initiator flow from PartyA to PartyB  
+- Returns a `SignedTransaction` ID  
+
+**Query the vault (list stored states):**
 
 ```bash
-corda-cli vnode run --name PartyA
-corda-cli vnode run --name PartyB
+flow start com.template.flows.QueryTemplateStates
 ```
 
-Logs will appear in:
-
-```
-~/.corda/cli/logs
-```
+- Returns all `TemplateState` objects stored in the vault  
 
 ---
 
-## 4. Run a Simple Flow
+## ✅ Summary
 
-Invoke a sample flow to test the CorDapp:
+With this guide, you can now:
 
-```bash
-corda-cli flow start --vnode PartyA --flow MyExampleFlow --args "PartyB,100"
-```
+- Clone and explore a Kotlin CorDapp  
+- Build and deploy virtual nodes  
+- Run flows and interact via Corda CLI  
+- Query vaults to validate transactions  
 
-> Replace `MyExampleFlow` and arguments based on your template.
+**Next Steps:**
 
----
-
-## 5. Verify the State is Recorded
-
-Check both nodes' vaults:
-
-```bash
-corda-cli vault query --vnode PartyA --state MyExampleState
-corda-cli vault query --vnode PartyB --state MyExampleState
-```
-
-Both nodes should show the shared state if the flow succeeded.
+- Implement multi-party flows  
+- Add Token SDK or Accounts SDK  
+- Test custom CorDapp flows with different scenarios  
+- Explore automation via RPC or REST API  
 
 ---
 
-## 6. Inspect & Validate
-
-- **Check Vaults** – Ensure states are visible only to correct parties  
-- **Logs** – Check `~/.corda/cli/logs/*.log` for errors  
-- **Network** – Confirm nodes can see each other; flows complete
-
----
-
-## 7. Optional Advanced Steps
-
-- Upgrade CorDapp CPI versions  
-- Explore Token SDK or Accounts SDK  
-- Deploy multiple parties, observer nodes, or notary pools  
-- Run custom vault queries  
-- Automate flows via RPC/REST API  
-
-> Official Docs: [Corda 5.2 Developer Documentation](https://docs.corda.net/docs/corda-os/5.2/index.html)
-
----
-
-## 8. Summary of Commands
-
-| Step | Command / Action |
-|------|-----------------|
-| Clone template | `git clone https://github.com/corda/some-cordapp-template.git` |
-| Build CorDapp | `./gradlew clean build` |
-| Preinstall nodes | `corda-cli preinstall` |
-| Create virtual nodes | `corda-cli vnode create --name PartyX` |
-| Install CorDapp | `corda-cli bundle install --cpi ... --vnode PartyX` |
-| Run nodes | `corda-cli vnode run --name PartyX` |
-| Run flow | `corda-cli flow start ...` |
-| Query vault | `corda-cli vault query --vnode PartyX --state ...` |
-
----
-
-## 🎉 You're Ready!
-
-Your macOS environment is now fully set up to:
-
-- Develop  
-- Deploy  
-- Test  
-
-**CorDapps on Corda 5.2 using virtual nodes.**
-
-### Next Steps
-
-- Explore multi-party flows  
-- Implement tokenization  
-- Simulate production-like network setups
-
----
-
-Built for macOS • Corda 5.2+ • Virtual Nodes • CLI-Driven Development
+Built for macOS • Corda 5.2+ • Kotlin CorDapp • Virtual Nodes • CLI & Gradle Driven Development
